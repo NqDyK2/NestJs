@@ -17,12 +17,12 @@ export class CreateProductDto {
     @IsString()
     readonly shortDesc: string;
 
-    @IsEmpty({message: "Product needs a description!!"})
+    @IsNotEmpty({message: "Product needs a description!!"})
     readonly description: string; 
     
     @IsNotEmpty()
     @IsEnum(CategoryProduct, {message: 'Category product is not correct.'})
-    readonly category: Category;
+    readonly category: CategoryProduct;
 
     @IsEmpty({ message: 'You cannot pass user id' })
     readonly user: User;

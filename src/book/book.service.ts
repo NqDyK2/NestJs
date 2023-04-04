@@ -5,10 +5,10 @@ import {
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import * as mongoose from 'mongoose';
-import { Book } from './schemas/book.schema';
 
 import { Query } from 'express-serve-static-core';
 import { User } from '../auth/schemas/user.schema';
+import { Book } from './schemas/book.schema';
 
 @Injectable()
 export class BookService {

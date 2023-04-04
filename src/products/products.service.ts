@@ -1,26 +1,65 @@
-import { Injectable } from '@nestjs/common';
-import { CreateProductDto } from './dto/create-product.dto';
-import { UpdateProductDto } from './dto/update-product.dto';
+import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
+import { User } from 'src/auth/schemas/user.schema';
+import mongoose from 'mongoose';
+import { InjectModel } from '@nestjs/mongoose';
+import { Product } from './schemas/product.schema';
+import { Query } from 'express-serve-static-core';
 
 @Injectable()
 export class ProductsService {
-  create(createProductDto: CreateProductDto) {
-    return 'This action adds a new product';
+  constructor(
+    @InjectModel(Product.name) private productModel: mongoose.Model<Product>
+  ) { }
+
+  async create(product: Product, user: User): Promise<Product> {
+    const data = Object.assign(product, { user: user._id });
+
+    const res = await this.productModel.create(data)
+    return res;
   }
 
-  findAll() {
-    return `This action returns all products`;
+  async findAll(query: Query): Promise<Product[]> {
+    const resPerPage = 2;
+    const currentPage = Number(query.page) || 1;
+    const skip = resPerPage * (currentPage - 1);
+
+    const keyword = query.keyword 
+    ? {
+      title: {
+        $regex: query.keyword,
+        $option: 'i',
+      },
+    } : {}
+
+    const products = await this.productModel
+      .find({ ...keyword })
+      .limit(resPerPage)
+      .skip(skip);
+    return products;
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} product`;
+  async findById(id: string) {
+    const isValidId = mongoose.isValidObjectId(id);
+
+    if (!isValidId) {
+      throw new BadRequestException('Please enter correct id.')
+    }
+
+    const product = await this.productModel.findById(id);
+
+    if (!product) {
+      throw new NotFoundException('Product not found.')
+    }
+
+    return product
   }
 
-  update(id: number, updateProductDto: UpdateProductDto) {
-    return `This action updates a #${id} product`;
+
+  async updateById(id: string, product: Product): Promise<Product> {
+    return await this.productModel.findByIdAndUpdate(id, product, { new: true, runValidators: true })
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} product`;
+  async deleteById(id: string): Promise<Product> {
+    return await this.productModel.findByIdAndDelete(id)
   }
 }
