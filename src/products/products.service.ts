@@ -25,9 +25,8 @@ export class ProductsService {
 
     const keyword = query.keyword 
     ? {
-      title: {
+      productName: {
         $regex: query.keyword,
-        $option: 'i',
       },
     } : {}
 
